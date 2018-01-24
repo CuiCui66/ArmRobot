@@ -1,4 +1,5 @@
 #include "geometry.h"
+#include <iostream>
 
 
 double l1 = 100.0; // mm
@@ -25,9 +26,10 @@ Polar Vector3::toPolar() const{
 }
 
 double triangleAngle(double c1, double c2, double c3){
-    return acos((c1*c1 + c2*c2 - c3*c3)/(2 * c1 * c2));
+    double in = (c1*c1 + c2*c2 - c3*c3)/(2 * c1 * c2);
+    assert(abs(in) <= 1);
+    return acos(in);
 }
-
 double triangleThirdLength(double c1, double c2, double angle){
     return sqrt(c1*c1 + c2*c2 - 2*c1*c2 * cos(angle));
 }
@@ -38,10 +40,15 @@ Configuration toConfiguration(Polar pol){
     return Configuration{pol.theta, shoulder,elbow, 2*pi-shoulder-elbow};
 }
 Polar fromConfiguration(Configuration cfg){
+    if(!(abs(2*pi - cfg.shoulder - cfg.elbow - cfg.wrist) < epsilon)){
+        cerr << "Warning in " << cfg << " invariant "
+             << std::abs(2*pi - cfg.shoulder - cfg.elbow - cfg.wrist)
+             << " >= epsilon (" << epsilon << ")" << endl;
+    }
     assert(std::abs(2*pi - cfg.shoulder - cfg.elbow - cfg.wrist) < epsilon);
     Polar pol;
     pol.r =  triangleThirdLength(l1, l2, cfg.elbow);
-    pol.phi = cfg.shoulder - triangleAngle(l1, pol.r, l2);
+    pol.phi = cfg.shoulder - atan2(l2*cos(cfg.elbow) + l1,l2*sin(cfg.elbow));
     pol.theta = cfg.base;
     return pol;
 }
@@ -53,3 +60,95 @@ Configuration inverse(Vector3 vec){
     return toConfiguration(toInternal(vec).toPolar());
 }
 
+//   ____ _                            _   _
+//  / ___(_)_ __   ___ _ __ ___   __ _| |_(_) ___ ___
+// | |   | | '_ \ / _ \ '_ ` _ \ / _` | __| |/ __/ __|
+// | |___| | | | |  __/ | | | | | (_| | |_| | (__\__ \
+//  \____|_|_| |_|\___|_| |_| |_|\__,_|\__|_|\___|___/
+
+
+
+double atan2D(double x, double y, double xd, double yd){
+    return(yd* x - xd * y)/ (x*x + y*y);
+}
+
+Polar toPolarD(Vector3 vec, Vector3 vecd){
+    auto [x,y,z] = vec;
+    auto [xd,yd,zd] = vecd;
+    auto r0 = hypot(x, y);
+    auto r0d = (x * xd+ y * yd) / r0;
+    Polar pol;
+    pol.theta = atan2D(x,y,xd,yd);
+    pol.phi = atan2D(r0, z, r0d, zd);
+    pol.r = (x*xd + y * yd + z *zd) / vec.norm();
+    return pol;
+}
+Vector3 fromPolarD(Polar pol, Polar pold){
+    auto [theta,phi,r] = pol;
+    auto [thetad,phid,rd] = pold;
+    Vector3 vec;
+    vec.x = rd * cos(phi) * cos(theta)
+        + r * phid * (-sin(phi)) * cos(theta)
+        + r * cos(phi) * thetad * (-sin(theta));
+    vec.y = rd * cos(phi) * sin(theta)
+        + r * phid * (-sin(phi)) * sin(theta)
+        + r * cos(phi) * thetad * cos(theta);
+    vec.z = rd * sin(phi) + r * phid * cos(phi);
+    return vec;
+}
+
+double triangleAngled1(double c1, double c2, double c3, double c1d){
+    double up = (c1*c1 + c2*c2 - c3*c3);
+    double down = 2 * c1 * c2;
+    double in = up/down;
+    assert(abs(in) < 1);
+    double ind = (2*c1*c1d * 2 *c1 *c2 - up * 2 * c1d * c2)/ (down * down);
+    return ind * 1/sqrt(1-in*in);
+}
+double triangleAngled3(double c1, double c2, double c3, double c3d){
+    double up = (c1*c1 + c2*c2 - c3*c3);
+    double down = 2 * c1 * c2;
+    double in = up/down;
+    double ind = (-2 * c3 * c3d) / down;
+    cout << ind << endl;
+    return ind * (-1)/sqrt(1-in*in);
+}
+
+double triangleThirdLengthD(double c1, double c2, double angle, double angled){
+    double in =(c1*c1 + c2*c2 - 2*c1*c2 * cos(angle));
+    double ind = -2 * c1 * c2 * angled * (- sin(angle));
+    return ind/(2*sqrt(in));
+}
+
+
+Configuration toConfigurationD(Polar pol, Polar pold){
+    Configuration cfg;
+    cfg.base = pold.theta;
+    cfg.shoulder = triangleAngled1(pol.r, l1, l2, pold.r) + pold.phi;
+    cfg.elbow = triangleAngled3(l1, l2, pol.r, pold.r);
+    cfg.wrist = - cfg.shoulder - cfg.elbow;
+    return cfg;
+}
+Polar fromConfigurationD(Configuration cfg, Configuration cfgd){
+    auto [base,shoulder,elbow,wrist] = cfg;
+    auto [based,shoulderd,elbowd,wristd] = cfgd;
+    Polar pol;
+    pol.r = triangleThirdLengthD(l1, l2, elbow, elbowd);
+    pol.phi = shoulderd - atan2D(l2*cos(elbow) +l1, l2 * sin(elbow),
+                                 l2*elbowd*(-sin(elbow)), l2 * elbowd * cos(elbow));
+    pol.theta = based;
+    return pol;
+}
+
+Vector3 directD(Configuration cfg, Configuration cfgd){
+    Polar pol = fromConfiguration(cfg);
+    Polar pold = fromConfigurationD(cfg, cfgd);
+    return fromPolarD(pol, pold);
+}
+
+Configuration inverseD(Vector3 vec, Vector3 vecd){
+    vec = toInternal(vec);
+    Polar pol = vec.toPolar();
+    Polar pold = toPolarD(vec, vecd);
+    return toConfigurationD(pol, pold);
+}

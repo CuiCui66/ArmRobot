@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <ostream>
 #include <memory>
 #include <vector>
 #include <type_traits>
@@ -57,6 +58,10 @@ struct Vector3{
         return std::hypot(x, y, z);
     }
 
+    double norm22() const {
+        return x*x + y*y + z*z;
+    }
+
     bool operator ==(Vector3 vec) const{
         vec -= (*this);
         return vec.norm1() < epsilon;
@@ -74,6 +79,9 @@ OPER(-,const Vector3&)
 OPER(*,double)
 OPER(/,double)
 inline Vector3 operator -(Vector3 v){return v * -1;}
+inline std::ostream& operator <<(std::ostream& out, const Vector3& vec){
+    return out << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
+}
 
 
 extern Vector3 robotpos;
@@ -89,9 +97,18 @@ struct Polar{
     }
 };
 
+inline std::ostream& operator <<(std::ostream& out, const Polar& pol){
+    return out << "(" << pol.r << ":" << pol.phi << ":" << pol.theta << ")";
+}
+
+
 struct Configuration{
     double base, shoulder, elbow, wrist;
 };
+inline std::ostream& operator <<(std::ostream& out, const Configuration& cfg){
+    return out << "Conf(" << cfg.base << ", " << cfg.shoulder
+               << ", " << cfg.elbow << ", " << cfg.wrist << ")";
+}
 
 /*  _____                 _   _ */
 /* |  ___|   _ _ __   ___| |_(_) ___  _ __  ___ */
@@ -196,7 +213,7 @@ Trajectory equiConcat(std::array<Trajectory,N> l){
             double stime = time *N;
             uint val = uint(stime);
             if (val == N) --val;
-            return trajs[val].speed(stime - val);
+            return trajs[val].speed(stime - val) * N;
         }
     };
     return Impl(l);
