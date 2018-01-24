@@ -41,7 +41,7 @@ Polar fromConfiguration(Configuration cfg){
     assert(std::abs(2*pi - cfg.shoulder - cfg.elbow - cfg.wrist) < epsilon);
     Polar pol;
     pol.r =  triangleThirdLength(l1, l2, cfg.elbow);
-    pol.phi = cfg.shoulder - triangleAngle(l1, l2, pol.r);
+    pol.phi = cfg.shoulder - triangleAngle(l1, pol.r, l2);
     pol.theta = cfg.base;
     return pol;
 }

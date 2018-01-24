@@ -177,7 +177,7 @@ public:
 
 
 
-template<size_t N>
+template<size_t N> // TODO change that.
 Trajectory equiConcat(std::array<Trajectory,N> l){
     static_assert(N>0);
     for(uint i = 0 ; i < N-1 ; ++i){
