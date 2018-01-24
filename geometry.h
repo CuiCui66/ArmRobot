@@ -75,9 +75,11 @@ OPER(-,const Vector3&)
 OPER(*,double)
 OPER(/,double)
 inline Vector3 operator -(Vector3 v){return v * -1;}
+inline Vector3 operator *(double p, Vector3 v){return v *= p;}
 inline std::ostream& operator <<(std::ostream& out, const Vector3& vec){
     return out << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
 }
+
 
 
 extern Vector3 robotpos;
@@ -214,6 +216,29 @@ inline Trajectory operator-(Trajectory t1, Trajectory t2){return equiConcat<2>({
 
 
 
+// ┏┓ ┏━╸╺━┓╻┏━╸┏━┓
+// ┣┻┓┣╸ ┏━┛┃┣╸ ┣┳┛
+// ┗━┛┗━╸┗━╸╹┗━╸╹┗╸
+
+class Bezier1 : Trajectory::TrajectoryI {
+    private:
+        Vector3 p0, p1;
+    protected:
+        Vector3 position(double);
+        Vector3 speed(double);
+    public:
+        Bezier1(Vector3, Vector3);
+};
+
+class Bezier2 : Trajectory::TrajectoryI {
+    private:
+        Vector3 p0, p1, p2;
+    protected:
+        Vector3 position(double);
+        Vector3 speed(double);
+    public:
+        Bezier2(Vector3, Vector3, Vector3);
+};
 
 
 

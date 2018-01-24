@@ -150,3 +150,47 @@ Configuration inverseD(Vector3 vec, Vector3 vecd){
     Polar pold = toPolarD(vec, vecd);
     return toConfigurationD(pol, pold);
 }
+
+// ┏┓ ┏━╸╺━┓╻┏━╸┏━┓
+// ┣┻┓┣╸ ┏━┛┃┣╸ ┣┳┛
+// ┗━┛┗━╸┗━╸╹┗━╸╹┗╸
+
+Bezier1::Bezier1(Vector3 p0, Vector3 p1){
+    this->p0 = p0;
+    this->p1 = p1;
+}
+
+Vector3 Bezier1::position(double time) {
+    return (1 - time) * this->p0 + time * this->p1;
+}
+
+Vector3 Bezier1::speed(double) {
+    return this->p1 - this->p0;
+}
+
+Bezier2::Bezier2(Vector3 p0, Vector3 p1, Vector3 p2){
+    this->p0 = p0;
+    this->p1 = p1;
+    this->p2 = p2;
+}
+
+Vector3 Bezier2::position(double time) {
+    double time_p = time * time * (3 - 2 * time);
+    return (1 - time_p) * (1 - time_p) * this->p0
+        + 2 * time_p * (1 - time_p) * this->p1
+        + time_p * time_p * this->p2;
+}
+
+Vector3 Bezier2::speed(double time) {
+    double time_p = time * time * (3 - 2 * time);
+    return (12 * time * (1 - time)) * (
+            (1 - time_p) * this->p0
+            + (2 * time_p - 1) * this->p1
+            - time_p * this->p2
+        );
+}
+
+
+
+
+
