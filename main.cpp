@@ -7,12 +7,12 @@
 using namespace std;
 
 int main(){
-    map<char, vector<Trajectory::TrajectoryI>> font;
+    map<char, vector<Trajectory>> font;
     FILE *fontfile = fopen("./fonts/" FONT ".font", "r");
     int nbChar; fscanf(fontfile, "%d", &nbChar);
     for(int iChar = 0; iChar < nbChar; ++iChar) {
         char l; int nbTraj; fscanf(fontfile, " %c%d", &l, &nbTraj);
-        font[l] = vector<Trajectory::TrajectoryI>();
+        font[l] = {};
         for(int iTraj = 0; iTraj < nbTraj; ++iTraj) {
             int nbPts; fscanf(fontfile, "%d", &nbPts);
             vector<Vector3> p;

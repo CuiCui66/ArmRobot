@@ -169,6 +169,11 @@ Vector3 Bezier1::speed(double time) {
     return 6 * time * (1 - time) * (this->p1 - this->p0);
 }
 
+void Bezier1::move(Matrix3 mat, Vector3 vec) {
+    p0 = mat * p0 + vec;
+    p1 = mat * p1 + vec;
+}
+
 Bezier2::Bezier2(Vector3 p0, Vector3 p1, Vector3 p2){
     this->p0 = p0;
     this->p1 = p1;
@@ -191,6 +196,12 @@ Vector3 Bezier2::speed(double time) {
         );
 }
 
+void Bezier2::move(Matrix3 mat, Vector3 vec) {
+    p0 = mat * p0 + vec;
+    p1 = mat * p1 + vec;
+    p2 = mat * p2 + vec;
+}
+
 Bezier3::Bezier3(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) :
     a(p0, p1, p2), b(p1, p2, p3) {}
 
@@ -201,6 +212,11 @@ Vector3 Bezier3::position(double time) {
 Vector3 Bezier3::speed(double time) {
     return a.position(time) + time * a.speed(time)
         - b.position(time) + (1 - time) * b.speed(time);
+}
+
+void Bezier3::move(Matrix3 mat, Vector3 vec) {
+    a.move(mat, vec);
+    b.move(mat, vec);
 }
 
 

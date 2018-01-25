@@ -26,6 +26,10 @@ struct Polar;
 struct Vector3{
     double x,y,z;
 
+    double dot(const Vector3& vec) {
+        return x * vec.x + y * vec.y + z * vec.z;
+    }
+
     Vector3& operator += (const Vector3& vec){
         x += vec.x; y += vec.y; z += vec.z;
         return *this;
@@ -92,6 +96,13 @@ inline std::ostream& operator <<(std::ostream& out, const Vector3& vec){
     return out << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
 }
 
+struct Matrix3 {
+    Vector3 a,b,c; // lines
+
+    Vector3 operator * (const Vector3& vec) {
+        return {a.dot(vec), b.dot(vec), c.dot(vec)};
+    }
+};
 
 
 extern Vector3 robotpos;
@@ -207,6 +218,7 @@ public:
             }
             return (position(time + epsilon) - position(time-epsilon))/(2*epsilon);
         }
+        virtual void move(Matrix3, Vector3) = 0;
     };
 private:
     std::shared_ptr<TrajectoryI> traj;
@@ -223,20 +235,11 @@ public:
         assert(time >= 0 and time <= 1);
         return traj->speed(time);
     }
+    inline void move(Matrix3 a, Vector3 b) {
+        traj->move(a, b);
+    }
     inline Vector3 operator()(double time){return position(time);}
     Vector3 speedToFollow(double time, Vector3 currentPos);
-
-
-    // basic ones :
-    static Trajectory line(Vector3 a, Vector3 b);
-    template<typename F> // F must have signature double -> Vector3;
-    static Trajectory fromPos(F f){
-        struct Impl : TrajectoryI{
-            F f;
-            Vector3 position(double time){ return f(time);}
-        };
-        return Impl{f};
-    }
 };
 
 
@@ -262,6 +265,9 @@ Trajectory equiConcat(std::array<Trajectory,N> l){
             if (val == N) --val;
             return trajs[val].speed(stime - val) * N;
         }
+        void move(Matrix3 mat, Vector3 vec) {
+            for(auto &traj : trajs) traj.move(mat, vec);
+        }
     };
     return Impl(l);
 }
@@ -280,6 +286,7 @@ class Bezier1 : public Trajectory::TrajectoryI {
     public:
         Vector3 position(double);
         Vector3 speed(double);
+        void move(Matrix3, Vector3);
         Bezier1(Vector3, Vector3);
 };
 
@@ -289,6 +296,7 @@ class Bezier2 : public Trajectory::TrajectoryI {
     public:
         Vector3 position(double);
         Vector3 speed(double);
+        void move(Matrix3, Vector3);
         Bezier2(Vector3, Vector3, Vector3);
 };
 
@@ -298,6 +306,7 @@ class Bezier3 : public Trajectory::TrajectoryI {
     public:
         Vector3 position(double);
         Vector3 speed(double);
+        void move(Matrix3, Vector3);
         Bezier3(Vector3, Vector3, Vector3, Vector3);
 };
 
