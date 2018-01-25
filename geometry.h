@@ -58,6 +58,18 @@ struct Vector3{
         return x*x + y*y + z*z;
     }
 
+    double dot(Vector3 vec) const {
+        return x*vec.x + y*vec.y + z*vec.z;
+    }
+
+    Vector3 cross(Vector3 vec) const {
+        return Vector3 {
+            y*vec.z - z*vec.y,
+            z*vec.x - x*vec.z,
+            x*vec.y - y*vec.x
+        };
+    }
+
     bool operator ==(Vector3 vec) const{
         vec -= (*this);
         return vec.norm1() < epsilon;
@@ -123,6 +135,32 @@ inline Configuration operator-(const Configuration& c1, const Configuration& c2)
     ret.wrist    = c1.wrist    - c2.wrist;
     return ret;
 }
+
+struct Plane {
+    //x in Plane <=> ortho.dot(x) == off
+    Vector3 ortho;
+    Vector3 e1, e2;
+    double off;
+
+    Plane(Vector3 a, Vector3 b, Vector3 c) {
+        ortho = getOrtho(a, b, c);
+        off = ortho.dot(a);
+        ortho /= ortho.norm();
+        e1 = ortho.cross(a-b);
+        e1 /= e1.norm();
+        e2 = ortho.cross(e1);
+        e2 /= e2.norm();
+    }
+
+    Vector3 proj2d(Vector3 v) {
+        Vector3 onPlane = v + (off-ortho.dot(v))*ortho;
+        //TODO: return `onPlane` in the basis e1, e2
+    }
+
+    static Vector3 getOrtho(Vector3 a, Vector3 b, Vector3 c) {
+        return (a-b).cross(a-c);
+    }
+};
 
 // ┏━╸╻ ╻┏┓╻┏━╸╺┳╸╻┏━┓┏┓╻┏━┓
 // ┣╸ ┃ ┃┃┗┫┃   ┃ ┃┃ ┃┃┗┫┗━┓
