@@ -1,5 +1,5 @@
 #include <iostream>
-//#include "penWriter.h"
+#include "penWriter.h"
 #include "geometry.h"
 
 #define FONT "GreatVibes"
