@@ -107,6 +107,22 @@ inline std::ostream& operator <<(std::ostream& out, const Configuration& cfg){
     return out << "Conf(" << cfg.base << ", " << cfg.shoulder
                << ", " << cfg.elbow << ", " << cfg.wrist << ")";
 }
+inline Configuration operator+(const Configuration& c1, const Configuration& c2) {
+    Configuration ret;
+    ret.base     = c1.base     + c2.base;
+    ret.shoulder = c1.shoulder + c2.shoulder;
+    ret.elbow    = c1.elbow    + c2.elbow;
+    ret.wrist    = c1.wrist    + c2.wrist;
+    return ret;
+}
+inline Configuration operator-(const Configuration& c1, const Configuration& c2) {
+    Configuration ret;
+    ret.base     = c1.base     - c2.base;
+    ret.shoulder = c1.shoulder - c2.shoulder;
+    ret.elbow    = c1.elbow    - c2.elbow;
+    ret.wrist    = c1.wrist    - c2.wrist;
+    return ret;
+}
 
 // ┏━╸╻ ╻┏┓╻┏━╸╺┳╸╻┏━┓┏┓╻┏━┓
 // ┣╸ ┃ ┃┃┗┫┃   ┃ ┃┃ ┃┃┗┫┗━┓

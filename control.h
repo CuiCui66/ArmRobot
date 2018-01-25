@@ -1,5 +1,6 @@
 
 #pragma once
+#include "geometry.h"
 
 class Motor {
     char* m_path;
@@ -8,6 +9,7 @@ class Motor {
     public:
     Motor() = delete;
     Motor(const char* name);
+    ~Motor();
 
     // Basic control
     void speed(long sp);
@@ -22,5 +24,28 @@ class Motor {
 
     // Advanced control
     void init_pos();
+};
+
+// Handle motors globally, and do the conversion betweens the unities of the
+// motors and those of the geometry module
+class Robot {
+    Configuration m_def;
+
+    public:
+    Motor base, shoulder, elbow, wrist;
+
+    Robot();
+
+    // Information
+    Configuration configuration();
+    Configuration speed();
+    Vector3 tipPositionCart();
+    Polar   tipPositionPol();
+    Vector3 tipSpeedCart();
+    Polar   tipSpeedPol();
+
+    // Control
+    void init();
+    void applyConfigurationSpeed(const Configuration& conf);
 };
 

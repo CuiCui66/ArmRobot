@@ -36,6 +36,10 @@ Motor::Motor(const char* name)
     stop();
     m_path = strdup(name);
 }
+    
+Motor::~Motor() {
+    free(m_path);
+}
 
 void Motor::speed(long sp) {
     char buffer[256];
@@ -150,4 +154,71 @@ void Motor::init_pos() {
     def_pos = position();
 }
 
+
+//  ____       _           _   
+// |  _ \ ___ | |__   ___ | |_ 
+// | |_) / _ \| '_ \ / _ \| __|
+// |  _ < (_) | |_) | (_) | |_ 
+// |_| \_\___/|_.__/ \___/ \__|
+//                             
+
+#define DEG2RAD(x) (((double)(x)) * M_PI / 180.0)
+#define RAD2DEG(x) (long int)((x) * 180.0 / M_PI)
+
+Robot::Robot()
+    : base(getenv("MCA")), shoulder(getenv("MCB")), elbow(getenv("MCC")), wrist(getenv("MCD"))
+{
+    // TODO find values
+    m_def.base     = 0;
+    m_def.shoulder = 0;
+    m_def.elbow    = 0;
+    m_def.wrist    = 0;
+}
+
+Configuration Robot::configuration() {
+    Configuration ret;
+    ret.base     = DEG2RAD(base.position()  * 3 / 35);
+    ret.shoulder = DEG2RAD(shoulder.position()  / 9);
+    ret.elbow    = DEG2RAD(elbow.position()     / 3);
+    ret.wrist    = DEG2RAD(wrist.position() * 9 / 25);
+    return ret + m_def;
+}
+
+Configuration Robot::speed() {
+    Configuration ret;
+    ret.base     = DEG2RAD(base.speed()  * 3 / 35);
+    ret.shoulder = DEG2RAD(shoulder.speed()  / 9);
+    ret.elbow    = DEG2RAD(elbow.speed()     / 3);
+    ret.wrist    = DEG2RAD(wrist.speed() * 9 / 25);
+    return ret;
+}
+
+Vector3 Robot::tipPositionCart() {
+    return direct(configuration());
+}
+
+Polar Robot::tipPositionPol() {
+    return fromConfiguration(configuration());
+}
+
+Vector3 Robot::tipSpeedCart() {
+    return directD(configuration(), speed());
+}
+
+Polar Robot::tipSpeedPol() {
+    return fromConfigurationD(configuration(), speed());
+}
+
+void Robot::init() {
+    shoulder.init_pos();
+    elbow.init_pos();
+    wrist.init_pos();
+}
+
+void Robot::applyConfigurationSpeed(const Configuration& conf) {
+    base    .speed(RAD2DEG(conf.base)     * 35 / 3);
+    shoulder.speed(RAD2DEG(conf.shoulder) * 9);
+    elbow   .speed(RAD2DEG(conf.elbow)    * 3);
+    wrist   .speed(RAD2DEG(conf.wrist)    * 25 / 9);
+}
 
