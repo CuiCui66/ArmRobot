@@ -40,9 +40,7 @@ class Robot {
     Configuration configuration();
     Configuration speed();
     Vector3 tipPositionCart();
-    Polar   tipPositionPol();
     Vector3 tipSpeedCart();
-    Polar   tipSpeedPol();
 
     // Control
     void init();

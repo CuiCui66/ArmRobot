@@ -16,7 +16,7 @@ using namespace std;
 // ┏┳┓┏━┓╺┳╸┏━┓┏━┓
 // ┃┃┃┃ ┃ ┃ ┃ ┃┣┳┛
 // ╹ ╹┗━┛ ╹ ┗━┛╹┗╸
-                            
+
 Motor::Motor(const char* name)
     : m_path(NULL), def_pos(0)
 {
@@ -33,7 +33,7 @@ Motor::Motor(const char* name)
     stop();
     m_path = strdup(name);
 }
-    
+
 Motor::~Motor() {
     free(m_path);
 }
@@ -153,8 +153,8 @@ void Motor::init_pos() {
 
 
 // ┏━┓┏━┓┏┓ ┏━┓╺┳╸
-// ┣┳┛┃ ┃┣┻┓┃ ┃ ┃ 
-// ╹┗╸┗━┛┗━┛┗━┛ ╹ 
+// ┣┳┛┃ ┃┣┻┓┃ ┃ ┃
+// ╹┗╸┗━┛┗━┛┗━┛ ╹
 
 #define DEG2RAD(x) (((double)(x)) * M_PI / 180.0)
 #define RAD2DEG(x) (long int)((x) * 180.0 / M_PI)
@@ -190,16 +190,9 @@ Vector3 Robot::tipPositionCart() {
     return direct(configuration());
 }
 
-Polar Robot::tipPositionPol() {
-    return fromConfiguration(configuration());
-}
 
 Vector3 Robot::tipSpeedCart() {
-    return directD(configuration(), speed());
-}
-
-Polar Robot::tipSpeedPol() {
-    return fromConfigurationD(configuration(), speed());
+    return direct(mp(configuration(), speed())).spd;
 }
 
 void Robot::init() {
