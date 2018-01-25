@@ -196,7 +196,7 @@ class Trajectory {
 public:
     class TrajectoryI{
         friend Trajectory;
-    protected:
+    public:
         virtual Vector3 position(double time) = 0;
         virtual Vector3 speed(double time){
             if (1 - time <= 2*epsilon) {
@@ -277,21 +277,28 @@ inline Trajectory operator-(Trajectory t1, Trajectory t2){return equiConcat<2>({
 class Bezier1 : Trajectory::TrajectoryI {
     private:
         Vector3 p0, p1;
-    protected:
+    public:
         Vector3 position(double);
         Vector3 speed(double);
-    public:
         Bezier1(Vector3, Vector3);
 };
 
 class Bezier2 : Trajectory::TrajectoryI {
     private:
         Vector3 p0, p1, p2;
-    protected:
+    public:
         Vector3 position(double);
         Vector3 speed(double);
-    public:
         Bezier2(Vector3, Vector3, Vector3);
+};
+
+class Bezier3 : Trajectory::TrajectoryI {
+    private:
+        Bezier2 a, b;
+    public:
+        Vector3 position(double);
+        Vector3 speed(double);
+        Bezier3(Vector3, Vector3, Vector3, Vector3);
 };
 
 

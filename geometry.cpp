@@ -191,6 +191,18 @@ Vector3 Bezier2::speed(double time) {
         );
 }
 
+Bezier3::Bezier3(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) :
+    a(p0, p1, p2), b(p1, p2, p3) {}
+
+Vector3 Bezier3::position(double time) {
+    return time * a.position(time) + (1 - time) * b.position(time);
+}
+
+Vector3 Bezier3::speed(double time) {
+    return a.position(time) + time * a.speed(time)
+        - b.position(time) + (1 - time) * b.speed(time);
+}
+
 
 
 
