@@ -404,7 +404,7 @@ MovingPoint<Configuration> inverse(const MovingPoint<Vector3>& vec);
 //  ┃ ┣┳┛┣━┫  ┃┣╸ ┃   ┃ ┃ ┃┣┳┛┗┳┛
 //  ╹ ╹┗╸╹ ╹┗━┛┗━╸┗━╸ ╹ ┗━┛╹┗╸ ╹
 
-double interp(double t, double a, double b){
+inline double interp(double t, double a, double b){
     return (t - a) / (b - a);
 }
 
