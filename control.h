@@ -16,20 +16,23 @@ class Motor {
     void duty(long dt);
     void reset();
     void stop();
+    void set(long st);
 
     // Information
-    bool stalled();
-    long speed();
-    long position();
+    bool stalled() const;
+    bool holding() const;
+    long speed() const;
+    long position() const;
 
     // Advanced control
     void init_pos();
+    void reset_pos();
 };
 
 // Handle motors globally, and do the conversion betweens the unities of the
 // motors and those of the geometry module
 class Robot {
-    Configuration m_def;
+    Configuration m_angles;
 
     public:
     Motor base, shoulder, elbow, wrist;
@@ -39,11 +42,10 @@ class Robot {
     // Information
     Configuration configuration();
     Configuration speed();
-    Vector3 tipPositionCart();
-    Vector3 tipSpeedCart();
 
     // Control
     void init();
     void applyConfigurationSpeed(const Configuration& conf);
+    void point(const Configuration& conf);
 };
 

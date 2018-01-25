@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+#include <iostream>
 extern "C" {
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -20,6 +21,8 @@ using namespace std;
 Motor::Motor(const char* name)
     : m_path(NULL), def_pos(0)
 {
+    m_path = strdup(name);
+
     char buffer[256];
     int fd;
 
@@ -31,7 +34,6 @@ Motor::Motor(const char* name)
     close(fd);
 
     stop();
-    m_path = strdup(name);
 }
 
 Motor::~Motor() {
@@ -58,6 +60,39 @@ void Motor::speed(long sp) {
     WRSTR(fd, "run-forever");
     close(fd);
 }
+    
+void Motor::set(long st) {
+    cout << m_path << " : " << st << endl;
+
+    char buffer[256];
+    int fd, n;
+
+    strcpy(buffer, m_path);
+    strcat(buffer, "/speed_sp");
+    fd = open(buffer, O_WRONLY);
+    assert(fd != -1);
+    WRSTR(fd, "45");
+    close(fd);
+
+    st += def_pos;
+    strcpy(buffer, m_path);
+    strcat(buffer, "/position_sp");
+    fd = open(buffer, O_WRONLY);
+    assert(fd != -1);
+    sprintf(buffer, "%li", st);
+    n = write(fd, buffer, strlen(buffer));
+    assert(n != -1);
+    close(fd);
+
+    strcpy(buffer, m_path);
+    strcat(buffer, "/command");
+    fd = open(buffer, O_WRONLY);
+    assert(fd != -1);
+    WRSTR(fd, "run-to-abs-pos");
+    close(fd);
+
+    while(!holding());
+}
 
 void Motor::duty(long dt) {
     char buffer[256];
@@ -65,7 +100,7 @@ void Motor::duty(long dt) {
 
     strcpy(buffer, m_path);
     strcat(buffer, "/duty_cycle_sp");
-    fd = open(buffer, O_RDONLY);
+    fd = open(buffer, O_WRONLY);
     assert(fd != -1);
     sprintf(buffer, "%li", dt);
     n = write(fd, buffer, strlen(buffer));
@@ -97,7 +132,7 @@ void Motor::stop() {
     close(fd);
 }
 
-bool Motor::stalled() {
+bool Motor::stalled() const {
     char buffer[256];
     int fd, n;
 
@@ -113,7 +148,23 @@ bool Motor::stalled() {
     return strstr(buffer, "stalled") != NULL;
 }
 
-long Motor::speed() {
+bool Motor::holding() const {
+    char buffer[256];
+    int fd, n;
+
+    strcpy(buffer, m_path);
+    strcat(buffer, "/state");
+    fd = open(buffer, O_RDONLY);
+    assert(fd != -1);
+    n = read(fd, buffer, 256);
+    assert(n != -1);
+    buffer[n] = '\0';
+    close(fd);
+
+    return strstr(buffer, "holding") != NULL;
+}
+
+long Motor::speed() const {
     char buffer[256];
     int fd, n;
 
@@ -127,7 +178,7 @@ long Motor::speed() {
     return strtol(buffer, NULL, 10);
 }
 
-long Motor::position() {
+long Motor::position() const {
     char buffer[256];
     int fd, n;
 
@@ -144,9 +195,24 @@ long Motor::position() {
 }
 
 void Motor::init_pos() {
-    duty(40);
+    char buffer[256];
+    int fd;
+
+    duty(0);
+    strcpy(buffer, m_path);
+    strcat(buffer, "/command");
+    fd = open(buffer, O_WRONLY);
+    assert(fd != -1);
+    WRSTR(fd, "run-direct");
+    close(fd);
+    duty(30);
     while(!stalled());
 
+    stop();
+    reset_pos();
+}
+
+void Motor::reset_pos() {
     def_pos = 0;
     def_pos = position();
 }
@@ -156,16 +222,16 @@ void Motor::init_pos() {
 // ┣┳┛┃ ┃┣┻┓┃ ┃ ┃
 // ╹┗╸┗━┛┗━┛┗━┛ ╹
 
-#define DEG2RAD(x) (((double)(x)) * M_PI / 180.0)
-#define RAD2DEG(x) (long int)((x) * 180.0 / M_PI)
+#define DEG2RAD(x) (((double)(x)) * pi / 180.0)
+#define RAD2DEG(x) (long int)((x) * 180.0 / pi)
 
 Robot::Robot()
-    : base(getenv("MCA")), shoulder(getenv("MCB")), elbow(getenv("MCC")), wrist(getenv("MCD"))
+    : base(getenv("MCD")), shoulder(getenv("MCA")), elbow(getenv("MCB")), wrist(getenv("MCC"))
 {
-    m_def.base     = 0;
-    m_def.shoulder = DEG2RAD(157);
-    m_def.elbow    = DEG2RAD(150);
-    m_def.wrist    = DEG2RAD(90);
+    m_angles.base     = 0;
+    m_angles.shoulder = DEG2RAD(157) + 0.15;
+    m_angles.elbow    = DEG2RAD(150) + 0.136;
+    m_angles.wrist    = DEG2RAD(93 - 20);
 }
 
 Configuration Robot::configuration() {
@@ -174,7 +240,7 @@ Configuration Robot::configuration() {
     ret.shoulder = DEG2RAD(shoulder.position()  / 9);
     ret.elbow    = DEG2RAD(elbow.position()     / 3);
     ret.wrist    = DEG2RAD(wrist.position() * 9 / 25);
-    return ret + m_def;
+    return ret + m_angles;
 }
 
 Configuration Robot::speed() {
@@ -186,16 +252,9 @@ Configuration Robot::speed() {
     return ret;
 }
 
-Vector3 Robot::tipPositionCart() {
-    return direct(configuration());
-}
-
-
-Vector3 Robot::tipSpeedCart() {
-    return direct(mp(configuration(), speed())).spd;
-}
-
 void Robot::init() {
+    base.stop();
+    base.reset_pos();
     shoulder.init_pos();
     elbow.init_pos();
     wrist.init_pos();
@@ -206,5 +265,13 @@ void Robot::applyConfigurationSpeed(const Configuration& conf) {
     shoulder.speed(RAD2DEG(conf.shoulder) * 9);
     elbow   .speed(RAD2DEG(conf.elbow)    * 3);
     wrist   .speed(RAD2DEG(conf.wrist)    * 25 / 9);
+}
+
+void Robot::point(const Configuration& conf) {
+    Configuration dest = conf - m_angles;
+    base    .set( RAD2DEG(dest.base)     * 35 / 3);
+    shoulder.set( RAD2DEG(dest.shoulder) * 9);
+    elbow   .set( RAD2DEG(dest.elbow)    * 3);
+    wrist   .set(-RAD2DEG(dest.wrist)    * 25 / 9);
 }
 
