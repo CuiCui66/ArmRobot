@@ -404,6 +404,10 @@ MovingPoint<Configuration> inverse(const MovingPoint<Vector3>& vec);
 //  ┃ ┣┳┛┣━┫  ┃┣╸ ┃   ┃ ┃ ┃┣┳┛┗┳┛
 //  ╹ ╹┗╸╹ ╹┗━┛┗━╸┗━╸ ╹ ┗━┛╹┗╸ ╹
 
+double interp(double t, double a, double b){
+    return (t - a) / (b - a);
+}
+
 class Trajectory {
 public:
     class TrajectoryI{
@@ -441,6 +445,13 @@ public:
     }
     inline Vector3 operator()(double time){return position(time);}
     Vector3 speedToFollow(double time, Vector3 currentPos);
+    Vector3 follow(Vector3 pos, double time, double init, double end){
+        // pos in mm, time, init, end in s.
+        Vector3 theoPos = position(interp(time,init,end));
+        Vector3 theoSpeed = speed(interp(time,init,end))/(end-init); // in mm/s
+        const double asservStrength = 1; // in s^1
+        return theoSpeed + asservStrength * (theoPos - pos);
+    }
 };
 
 
