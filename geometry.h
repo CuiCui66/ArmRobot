@@ -424,6 +424,7 @@ public:
             return (position(time + epsilon) - position(time-epsilon))/(2*epsilon);
         }
         virtual void move(Matrix3, Vector3) = 0;
+        virtual ~TrajectoryI() { };
     };
 private:
     std::shared_ptr<TrajectoryI> traj;
