@@ -1,5 +1,5 @@
 OBJS=geometry.o control.o main.o
-HEADERS=geometry.h control.h
+HEADERS=geometry.h control.h fraction.h
 CC=arm-linux-gnueabi-g++
 CFLAGS=-std=c++14 -g -Wall -Wextra
 

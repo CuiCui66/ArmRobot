@@ -1,5 +1,6 @@
 
 #include "control.h"
+#include "fraction.h"
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -225,6 +226,11 @@ void Motor::reset_pos() {
 #define DEG2RAD(x) (((double)(x)) * pi / 180.0)
 #define RAD2DEG(x) (long int)((x) * 180.0 / pi)
 
+const fraction base_red(3, 35);
+const fraction shoulder_red(1, 9);
+const fraction elbow_red(1, 3);
+const fraction wrist_red(-9, 25);
+
 Robot::Robot()
     : base(getenv("MCD")), shoulder(getenv("MCA")), elbow(getenv("MCB")), wrist(getenv("MCC"))
 {
@@ -236,19 +242,19 @@ Robot::Robot()
 
 Configuration Robot::configuration() {
     Configuration ret;
-    ret.base     = DEG2RAD(base.position()  * 3 / 35);
-    ret.shoulder = DEG2RAD(shoulder.position()  / 9);
-    ret.elbow    = DEG2RAD(elbow.position()     / 3);
-    ret.wrist    = DEG2RAD(wrist.position() * 9 / 25);
+    ret.base     = DEG2RAD(base.position()     * base_red);
+    ret.shoulder = DEG2RAD(shoulder.position() * shoulder_red);
+    ret.elbow    = DEG2RAD(elbow.position()    * elbow_red);
+    ret.wrist    = DEG2RAD(wrist.position()    * wrist_red);
     return ret + m_angles;
 }
 
 Configuration Robot::speed() {
     Configuration ret;
-    ret.base     = DEG2RAD(base.speed()  * 3 / 35);
-    ret.shoulder = DEG2RAD(shoulder.speed()  / 9);
-    ret.elbow    = DEG2RAD(elbow.speed()     / 3);
-    ret.wrist    = DEG2RAD(wrist.speed() * 9 / 25);
+    ret.base     = DEG2RAD(base.speed()     * base_red);
+    ret.shoulder = DEG2RAD(shoulder.speed() * shoulder_red);
+    ret.elbow    = DEG2RAD(elbow.speed()    * elbow_red);
+    ret.wrist    = DEG2RAD(wrist.speed()    * wrist_red);
     return ret;
 }
 
@@ -261,17 +267,17 @@ void Robot::init() {
 }
 
 void Robot::applyConfigurationSpeed(const Configuration& conf) {
-    base    .speed(RAD2DEG(conf.base)     * 35 / 3);
-    shoulder.speed(RAD2DEG(conf.shoulder) * 9);
-    elbow   .speed(RAD2DEG(conf.elbow)    * 3);
-    wrist   .speed(RAD2DEG(conf.wrist)    * 25 / 9);
+    base    .speed(RAD2DEG(conf.base)     / base_red);
+    shoulder.speed(RAD2DEG(conf.shoulder) / shoulder_red);
+    elbow   .speed(RAD2DEG(conf.elbow)    / elbow_red);
+    wrist   .speed(RAD2DEG(conf.wrist)    / wrist_red);
 }
 
 void Robot::point(const Configuration& conf) {
     Configuration dest = conf - m_angles;
-    base    .set( RAD2DEG(dest.base)     * 35 / 3);
-    shoulder.set( RAD2DEG(dest.shoulder) * 9);
-    elbow   .set( RAD2DEG(dest.elbow)    * 3);
-    wrist   .set(-RAD2DEG(dest.wrist)    * 25 / 9);
+    base    .set(RAD2DEG(dest.base)     / base_red);
+    shoulder.set(RAD2DEG(dest.shoulder) / shoulder_red);
+    elbow   .set(RAD2DEG(dest.elbow)    / elbow_red);
+    wrist   .set(RAD2DEG(dest.wrist)    / wrist_red);
 }
 
