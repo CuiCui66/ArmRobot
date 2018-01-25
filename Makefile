@@ -1,4 +1,17 @@
+OBJS=geometry.o control.o main.o
+HEADERS=geometry.h control.h
+CC=arm-linux-gnueabi-g++
+CFLAGS=-std=c++14 -g -Wall -Wextra
+
 all: test
 
-test: main.cpp geometry.cpp geometry.h control.cpp control.h KeyboardTyper.cpp KeyboardTyper.h penWriter.cpp penWriter.h
-	clang++ -std=c++14 -g -Wall -Wextra main.cpp geometry.cpp control.cpp penWriter.cpp -o test
+test: $(OBJS) $(HEADERS)
+	$(CC) $(CFLAGS) $^ -o $@
+
+%.o: %.cpp $(HEADERS)
+	$(CC) $(CFLAGS) $< -c -o $@
+
+clean:
+	@touch $(OBJS)
+	rm $(OBJS)
+
