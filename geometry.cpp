@@ -161,11 +161,12 @@ Bezier1::Bezier1(Vector3 p0, Vector3 p1){
 }
 
 Vector3 Bezier1::position(double time) {
-    return (1 - time) * this->p0 + time * this->p1;
+    double time_p = time * time * (3 - 2 * time);
+    return (1 - time_p) * this->p0 + time_p * this->p1;
 }
 
-Vector3 Bezier1::speed(double) {
-    return this->p1 - this->p0;
+Vector3 Bezier1::speed(double time) {
+    return 6 * time * (1 - time) * (this->p1 - this->p0);
 }
 
 Bezier2::Bezier2(Vector3 p0, Vector3 p1, Vector3 p2){
