@@ -511,7 +511,9 @@ inline Trajectory equiConcatv(std::vector<Trajectory> l){
     };
     return Impl(l);
 }
-inline Trajectory operator-(Trajectory t1, Trajectory t2){return equiConcat<2>({{t1,t2}});}
+inline Trajectory operator-(Trajectory t1, Trajectory t2) {
+    return equiConcatv({{t1,t2}});
+}
 
 
 
