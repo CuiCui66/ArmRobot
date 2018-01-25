@@ -274,7 +274,7 @@ inline Trajectory operator-(Trajectory t1, Trajectory t2){return equiConcat<2>({
 // ┣┻┓┣╸ ┏━┛┃┣╸ ┣┳┛
 // ┗━┛┗━╸┗━╸╹┗━╸╹┗╸
 
-class Bezier1 : Trajectory::TrajectoryI {
+class Bezier1 : public Trajectory::TrajectoryI {
     private:
         Vector3 p0, p1;
     public:
@@ -283,7 +283,7 @@ class Bezier1 : Trajectory::TrajectoryI {
         Bezier1(Vector3, Vector3);
 };
 
-class Bezier2 : Trajectory::TrajectoryI {
+class Bezier2 : public Trajectory::TrajectoryI {
     private:
         Vector3 p0, p1, p2;
     public:
@@ -292,7 +292,7 @@ class Bezier2 : Trajectory::TrajectoryI {
         Bezier2(Vector3, Vector3, Vector3);
 };
 
-class Bezier3 : Trajectory::TrajectoryI {
+class Bezier3 : public Trajectory::TrajectoryI {
     private:
         Bezier2 a, b;
     public:
