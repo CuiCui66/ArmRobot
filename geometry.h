@@ -51,7 +51,7 @@ struct Vector3{
     }
 
     double norm() const {
-        return std::hypot(x, y, z);
+        return std::sqrt(x*x + y*y + z*z);
     }
 
     double norm22() const {
@@ -158,7 +158,7 @@ private:
     std::shared_ptr<TrajectoryI> traj;
 public:
     Trajectory() = delete;
-    template<typename T, typename = std::enable_if_t<std::is_base_of_v<TrajectoryI, T>>>
+    template<typename T, typename = std::enable_if_t<std::is_base_of<TrajectoryI, T>::value>>
     Trajectory(T t) : traj(new T(std::move(t))){}
 
     inline Vector3 position(double time){
