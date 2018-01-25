@@ -99,6 +99,10 @@ inline std::ostream& operator <<(std::ostream& out, const Vector3& vec){
 struct Matrix3 {
     Vector3 a,b,c; // lines
 
+    Matrix3 operator * (double d) {
+        return {a * d, b * d, c * d};
+    }
+
     Vector3 operator * (const Vector3& vec) {
         return {a.dot(vec), b.dot(vec), c.dot(vec)};
     }
@@ -271,7 +275,34 @@ Trajectory equiConcat(std::array<Trajectory,N> l){
     };
     return Impl(l);
 }
-Trajectory equiConcatv(std::vector<Trajectory> list);
+inline Trajectory equiConcatv(std::vector<Trajectory> l){
+    uint N = l.size();
+    for(uint i = 0 ; i < N-1; ++i){
+        assert(l[i](1) == l[i+1](0));
+    }
+    struct Impl : Trajectory::TrajectoryI{
+        std::vector<Trajectory> trajs;
+        Impl(std::vector<Trajectory> l) : trajs(l){}
+        Vector3 position(double time){
+            uint N = trajs.size();
+            double stime = time * N;
+            uint val = uint(stime);
+            if (val == N) --val;
+            return trajs[val](stime - val);
+        }
+        Vector3 speed(double time){
+            uint N = trajs.size();
+            double stime = time * N;
+            uint val = uint(stime);
+            if (val == N) --val;
+            return trajs[val].speed(stime - val) * N;
+        }
+        void move(Matrix3 mat, Vector3 vec) {
+            for(auto &traj : trajs) traj.move(mat, vec);
+        }
+    };
+    return Impl(l);
+}
 inline Trajectory operator-(Trajectory t1, Trajectory t2){return equiConcat<2>({{t1,t2}});}
 
 
