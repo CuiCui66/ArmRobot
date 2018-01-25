@@ -168,11 +168,10 @@ void Motor::init_pos() {
 Robot::Robot()
     : base(getenv("MCA")), shoulder(getenv("MCB")), elbow(getenv("MCC")), wrist(getenv("MCD"))
 {
-    // TODO find values
     m_def.base     = 0;
-    m_def.shoulder = 0;
-    m_def.elbow    = 0;
-    m_def.wrist    = 0;
+    m_def.shoulder = DEG2RAD(157);
+    m_def.elbow    = DEG2RAD(150);
+    m_def.wrist    = DEG2RAD(90);
 }
 
 Configuration Robot::configuration() {

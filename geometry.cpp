@@ -2,8 +2,8 @@
 #include <iostream>
 
 
-double l1 = 100.0; // mm
-double l2 = 100.0; // mm
+double l1 = 199.25; // mm
+double l2 = 200.68; // mm
 double epsilon = 0.00001;
 double pi = std::acos(-1);
 Vector3 robotpos{0,0,100.0};
