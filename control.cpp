@@ -63,8 +63,6 @@ void Motor::speed(long sp) {
 }
     
 void Motor::set(long st) {
-    cout << m_path << " : " << st << endl;
-
     char buffer[256];
     int fd, n;
 
@@ -229,15 +227,15 @@ void Motor::reset_pos() {
 const fraction base_red(3, 35);
 const fraction shoulder_red(1, 9);
 const fraction elbow_red(1, 3);
-const fraction wrist_red(-9, 25);
+const fraction wrist_red(-1, 1);
 
 Robot::Robot()
     : base(getenv("MCD")), shoulder(getenv("MCA")), elbow(getenv("MCB")), wrist(getenv("MCC"))
 {
     m_angles.base     = 0;
-    m_angles.shoulder = DEG2RAD(157) + 0.15;
-    m_angles.elbow    = DEG2RAD(150) + 0.136;
-    m_angles.wrist    = DEG2RAD(93 - 20);
+    m_angles.shoulder = DEG2RAD(157) + 0.1;
+    m_angles.elbow    = DEG2RAD(150);
+    m_angles.wrist    = DEG2RAD(20) + 0.3;
 }
 
 Configuration Robot::configuration() {
@@ -276,9 +274,9 @@ void Robot::applyConfigurationSpeed(const Configuration& conf) {
 void Robot::point(const Configuration& conf) {
     Configuration dest = conf - m_angles;
     base    .set(RAD2DEG(dest.base)     / base_red);
-    shoulder.set(RAD2DEG(dest.shoulder) / shoulder_red);
-    elbow   .set(RAD2DEG(dest.elbow)    / elbow_red);
     wrist   .set(RAD2DEG(dest.wrist)    / wrist_red);
+    elbow   .set(RAD2DEG(dest.elbow)    / elbow_red);
+    shoulder.set(RAD2DEG(dest.shoulder) / shoulder_red);
 }
 
 void Robot::stop() {
