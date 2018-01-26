@@ -1,4 +1,5 @@
 #include "penWriter.h"
+#include <ctime>
 
 #define ever (;;)
 
@@ -38,11 +39,17 @@ void PenWriter::setSize(double size) {
     this->size = size;
 }
 
-void PenWriter::write() {
+#define DURATION 200
+void PenWriter::write(Robot& bot) {
     char buffer[42]; // use string ?
     double offset = 0;
+    clock_t beg, end, clk;
     Vector3 last = {0, 0, 0};
-    // TODO move the robot to WRITING_START
+    Configuration conf;
+    MovingPoint<Vector3> mp;
+
+    conf = inverse(PAPER_START);
+    bot.point(conf);
     for ever {
         scanf(" %s", buffer);
         std::string word = buffer;
@@ -50,11 +57,22 @@ void PenWriter::write() {
             auto traj = getTraj(l, last);
             last = traj(1) - WRITING_DIR;
             traj.move(Matrix3(
-                    {{ROT, -ROT, 0}, // TODO add rotation to follow WRITING_DIR
+                    {{ROT, -ROT, 0},
                      {ROT, ROT, 0},
                      {0, 0, 1}}) * size,
                     PAPER_START + WRITING_DIR * offset * size);
-            // TODO make robot do trajectory traj
+            // Draw letter
+            beg = clock();
+            end = beg + DURATION * CLOCKS_PER_SEC;
+            clk = clock();
+            while(clk < end) {
+                bot.applyConfigurationSpeed(conf);
+                mp.pos = direct(bot.configuration());
+                mp.spd = traj.follow(mp.pos, clk, beg, end);
+                conf = inverse(mp).spd;
+                clk = clock();
+            }
+            //
             ++offset;
         }
         ++offset;
