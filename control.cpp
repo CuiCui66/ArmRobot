@@ -281,3 +281,10 @@ void Robot::point(const Configuration& conf) {
     wrist   .set(RAD2DEG(dest.wrist)    / wrist_red);
 }
 
+void Robot::stop() {
+    base.stop();
+    shoulder.stop();
+    elbow.stop();
+    wrist.stop();
+}
+

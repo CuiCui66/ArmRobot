@@ -45,6 +45,7 @@ class Robot {
 
     // Control
     void init();
+    void stop();
     void applyConfigurationSpeed(const Configuration& conf);
     void point(const Configuration& conf);
 };
