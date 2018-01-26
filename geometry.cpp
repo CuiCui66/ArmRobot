@@ -5,14 +5,14 @@ using namespace std;
 
 #define STUDS(x) ((double)(x) * 7.97)
 double l1 = STUDS(25); // mm
-double l2 = Vector2({STUDS(22),STUDS(3)}).norm(); // mm
-double l3 = STUDS(9); // mm
+double l2 = STUDS(19); // mm
+double l3 = STUDS(10); // mm
 double epsilon = 0.00001;
 double pi = std::acos(-1);
 Vector3 robotpos{0,0,0.0};
 // O1 is the first horizontal axis.
 // the must be O1pos minus the height of the hand.
-Vector2 O1pos{STUDS(3),STUDS(30)};
+Vector2 O1pos{STUDS(2),STUDS(29.5)};
 double robotor = 0.0;
 
 
